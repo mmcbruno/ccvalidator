@@ -16,7 +16,7 @@ namespace WebCCValidator.Controllers
     {
        
         private readonly IChecker _checker;
-        private readonly string NonNumericalRegex = "[^.0-9]";
+     
 
         public HomeController(IConfiguration config, IChecker checker)
         {
@@ -32,16 +32,14 @@ namespace WebCCValidator.Controllers
         [HttpPost]
         public IActionResult Index(string creditCards)
         {
-           // creditCards = Regex.Replace(creditCards, NonNumericalRegex, "");
-            Dictionary<string, bool> CcDictionary =
-            creditCards.Replace("\r", "").Split("\n").Select(item => item.Split('=')).ToDictionary(s => s[0], s => false); 
-
-            foreach(KeyValuePair<string, bool> cc in CcDictionary)
+            Dictionary<string, bool> CcDictionary = new Dictionary<string, bool>();
+            IEnumerable<string> numbers = creditCards.Trim().Split('\n').ToList().Distinct();
+            foreach (string cc in numbers) 
             {
-                CcDictionary[cc.Key] = _checker.CheckCC(cc.Key);
+                CcDictionary.Add(cc.Trim(),_checker.CheckCC(cc.Trim()));
             }
 
-            return View();
+            return View(CcDictionary);
         }
 
       

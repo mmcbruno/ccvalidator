@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WebCCValidator.Interfaces;
 using WebCCValidator.Models;
@@ -13,6 +14,7 @@ namespace WebCCValidator.Validators
 
         private readonly IConfiguration _config;
         private List<Issuer> _issures;
+        private readonly string NonNumericalRegex = "[^.0-9]";
         public Checker(IConfiguration config)
         {
             _config = config;
@@ -33,18 +35,51 @@ namespace WebCCValidator.Validators
         }
 
         public bool CheckCC(string key)
-        {  
-            List<char> datalist = new List<char>();
-            datalist.AddRange(key);
-            bool result = false;
-            //Issuer/Lenght relation check
-            Issuer current = _issures.Where(s => s.IIN.Contains(datalist[0]) || s.IIN.Contains($"{datalist[0]}{datalist[1]}")).FirstOrDefault();
-            result &= (current.Lenght == datalist.Count);
-            //Luhn check
-             List<int> cc = datalist.Select(s => Convert.ToInt32(s)).ToList();
-             result &= CcNumberValidators.CheckLuhn(cc);
+        {
 
-            return result;
+            if (string.IsNullOrEmpty(key)) { return false; }
+            //List<char> datalist = new List<char>();
+            //datalist.AddRange(key);
+            
+            bool isValid = false;
+            //only numeric char
+            Match m = Regex.Match(key, NonNumericalRegex, RegexOptions.IgnoreCase);
+            isValid = !m.Success;
+            if (isValid)
+            {
+                //Issuer/Lenght relation check
+                Issuer current = _issures.Where(s => s.IIN.Contains(key[0]) || s.IIN.Contains($"{key[0]}{key[1]}")).FirstOrDefault();
+                isValid &= (current != null && current.Lenght == key.Length);
+            }
+            if (isValid)
+            {
+                //Luhn check
+                //List<int> cc = datalist.Select(s => (int)Char.GetNumericValue(s)).ToList();
+                isValid &= CheckLuhn(key);
+            }
+            return isValid;
+        }
+
+        private bool CheckLuhn(string ccNumber)
+        {
+            if (string.IsNullOrEmpty(ccNumber)) return false;
+            int numDigits = ccNumber.Length;
+            ccNumber = new String(ccNumber.Reverse().ToArray());
+            int sum = int.Parse(ccNumber[0].ToString());// check digit
+            for (int i = 1; i <= numDigits - 1; i++)
+            {
+                int digit = int.Parse(ccNumber[i].ToString()); 
+                if ((i % 2) == 1)
+                {
+                    digit = digit * 2;
+                    if (digit > 9)
+                    {
+                        digit = digit - 9;
+                    }
+                }
+                sum += digit;
+            }
+            return (sum % 10) == 0;
         }
     }
 }

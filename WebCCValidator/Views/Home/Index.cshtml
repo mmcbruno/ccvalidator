@@ -1,17 +1,59 @@
-﻿@{
+﻿@model Dictionary<string, bool>
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Validate Credit card number</h1>
-    <form method="POST">
-        <p>
-            <label for="creditCards">Please insert Credit cards number to validate below (one per row)</label><br/>
-            <textarea id="creditCards" name="creditCards" rows="15" cols="50">
-           </textarea><br />
-            <input type="submit" />
+    <h1 class="display-4 text-left">Credit card validator</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="creditCards">Please insert credit cards numbers to validate below (one per row)</label>
+                        <textarea class="form-control" id="creditCards" name="creditCards" rows="15"></textarea><br/>
+                        <input type="submit" />
+                    </div>
 
-        </p>
-    </form>  
-   
+                </form>
+              
+
+            </div>
+            <div class="col-sm">
+                @{if (Model != null)
+                    {
+                        <span class="border">
+
+                            @foreach (KeyValuePair<string, bool> result in Model)
+                            {
+                                <p>
+                                    @result.Key :
+                                    @{if (result.Value)
+                                        {
+                                            <span class="text-success">
+                                                valid
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">
+                                                invalid
+                                            </span>
+                                        }
+
+                                    }
+                                </p>
+                            }
+                        </span>
+                        <p><a href="/" class="text-primary">Reset</a></p>
+                    }
+                }
+            </div>           
+        </div>
+    </div>
+
+
+
+  
+
 </div>
